@@ -34,7 +34,7 @@ try:
     # Создание общей электронной таблицы
     output_wb_overall = openpyxl.Workbook()
     output_sheet_overall = output_wb_overall.active
-    output_sheet_overall.append(['Артикул', 'Наименование товара', 'Цена товара', 'Цена товара со скидкой', 'Ссылка товара на Wildberries', 'Рекомендуемая скидка', 'Соответствие', 'Ссылка'])
+    output_sheet_overall.append(['Артикул', 'Наименование товара', 'Цена товара', 'Цена товара со скидкой', 'Ссылка товара на Wildberries', 'Рекомендуемая скидка', 'Соответствие'])
 
     # Проход по каждой строке в Excel (начиная с 2-й строки, чтобы пропустить заголовок)
     for row in range(2, sheet.max_row + 1):
@@ -124,10 +124,9 @@ try:
             correspondence = 'Да' if lowest_price is not None and recommended_discount > 0 else 'Нет'
 
             # Записываем данные в общую таблицу
-            output_sheet_overall.append([vendor_article, name, entry_price, lowest_price, wb_link, recommended_discount, correspondence, product_link])
+            output_sheet_overall.append([vendor_article, name, entry_price, lowest_price, wb_link, recommended_discount, correspondence])
         else:
             print(f"No price data for vendor article {vendor_article}")
-            output_sheet_overall.append([vendor_article, name, entry_price, lowest_price, wb_link, 0, 'Нет', ''])
 
     # Сохраняем общую таблицу
     output_wb_overall.save("outputs_folder\\output_overall.xlsx")
