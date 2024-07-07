@@ -60,6 +60,9 @@ try:
         search_input.send_keys(Keys.RETURN)
         time.sleep(10)  # Ждем загрузки результатов
 
+        # Сохраняем ссылку на страницу парсинга
+        search_page_link = driver.current_url
+
         product_cards = driver.find_elements(By.CSS_SELECTOR, 'article.product-card')
         if not product_cards:
             print(f"Товары с брендом '{brand_to_search}' не найдены.")
@@ -124,10 +127,10 @@ try:
             correspondence = 'Да' if lowest_price is not None and recommended_discount > 0 else 'Нет'
 
             # Записываем данные в общую таблицу
-            output_sheet_overall.append([vendor_article, name, entry_price, lowest_price, wb_link, recommended_discount, correspondence, product_link])
+            output_sheet_overall.append([vendor_article, name, entry_price, lowest_price, wb_link, recommended_discount, correspondence, search_page_link])
         else:
             print(f"No price data for vendor article {vendor_article}")
-            output_sheet_overall.append([vendor_article, name, entry_price, lowest_price, wb_link, 0, 'Нет', ''])
+            output_sheet_overall.append([vendor_article, name, entry_price, lowest_price, wb_link, 0, 'Нет', search_page_link])
 
     # Сохраняем общую таблицу
     output_wb_overall.save("outputs_folder\\output_overall.xlsx")
