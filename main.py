@@ -120,17 +120,16 @@ try:
         output_wb.save(f"outputs_folder\\output_{clean_name}.xlsx")
 
         # Проверяем наличие цены в найденных данных
-        entry_price = float(re.sub(r'[^\d.]', '', lowest_price_item[1])) if lowest_price_item else 0
-
-        if entry_price > 0:
-            recommended_discount = calculate_recommended_discount(entry_price, lowest_price) if lowest_price is not None else 0
-            correspondence = 'Да' if lowest_price is not None and recommended_discount > 0 else 'Нет'
+        entry_discounted_price = float(re.sub(r'[^\d.]', '', sheet.cell(row=row, column=6).value or "0"))
+        if entry_discounted_price > 0:
+            recommended_discount = calculate_recommended_discount(entry_discounted_price, lowest_price) if lowest_price is not None else 0
+            correspondence = 'Да' if lowest_price is not None and entry_discounted_price <= lowest_price else 'Нет'
 
             # Записываем данные в общую таблицу
-            output_sheet_overall.append([vendor_article, name, entry_price, lowest_price, wb_link, recommended_discount, correspondence, search_page_link])
+            output_sheet_overall.append([vendor_article, name, entry_discounted_price, lowest_price, wb_link, recommended_discount, correspondence, search_page_link])
         else:
             print(f"No price data for vendor article {vendor_article}")
-            output_sheet_overall.append([vendor_article, name, entry_price, lowest_price, wb_link, 0, 'Нет', search_page_link])
+            output_sheet_overall.append([vendor_article, name, entry_discounted_price, lowest_price, wb_link, 0, 'Нет', search_page_link])
 
     # Сохраняем общую таблицу
     output_wb_overall.save("outputs_folder\\output_overall.xlsx")

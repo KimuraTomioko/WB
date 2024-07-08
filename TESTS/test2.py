@@ -34,7 +34,7 @@ try:
     # Создание общей электронной таблицы
     output_wb_overall = openpyxl.Workbook()
     output_sheet_overall = output_wb_overall.active
-    output_sheet_overall.append(['Артикул', 'Наименование товара', 'Цена товара', 'Цена товара со скидкой', 'Ссылка товара на Wildberries', 'Рекомендуемая скидка', 'Соответствие'])
+    output_sheet_overall.append(['Артикул', 'Наименование товара', 'Цена товара', 'Цена товара со скидкой', 'Ссылка товара на Wildberries', 'Рекомендуемая скидка', 'Соответствие', 'Ссылка'])
 
     # Проход по каждой строке в Excel (начиная с 2-й строки, чтобы пропустить заголовок)
     for row in range(2, sheet.max_row + 1):
@@ -71,6 +71,7 @@ try:
         output_sheet.append(['Название товара', 'Цена товара', 'Цена со скидкой', 'Ссылка товара на Wildberries'])
 
         lowest_price = None
+        lowest_price_item = None
 
         for card in product_cards:
             try:
@@ -99,32 +100,37 @@ try:
                     discounted_price = float(re.sub(r'[^\d.]', '', discounted_price_element))
                     if lowest_price is None or discounted_price < lowest_price:
                         lowest_price = discounted_price
+                        lowest_price_item = [name_element, price_element, discounted_price_element, product_link]
 
             except Exception as e:
                 print(f"Exception occurred while parsing card: {e}")
 
-        # Выделяем строку входящего товара цветом
-        for cell in output_sheet[2]:
-            cell.fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+        # Проверка на соответствие артикулов и выделение строки цветом
+        for i, row_data in enumerate(output_sheet.iter_rows(min_row=2, values_only=True), start=2):
+            if str(wb_article) in row_data[3]:
+                for cell in output_sheet[i]:
+                    cell.fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+                break
 
         # Чистим название файла и сохраняем результаты в отдельный Excel файл
         clean_name = clean_filename(f"{vendor_article}")
-        output_wb.save(f"output_{clean_name}.xlsx")
+        output_wb.save(f"outputs_folder\\output_{clean_name}.xlsx")
 
         # Проверяем наличие цены в найденных данных
-        entry_price = lowest_price  # Используем минимальную найденную цену как базовую
+        entry_price = float(re.sub(r'[^\d.]', '', lowest_price_item[1])) if lowest_price_item else 0
 
-        if entry_price is not None and entry_price > 0:
+        if entry_price > 0:
             recommended_discount = calculate_recommended_discount(entry_price, lowest_price) if lowest_price is not None else 0
             correspondence = 'Да' if lowest_price is not None and recommended_discount > 0 else 'Нет'
 
             # Записываем данные в общую таблицу
-            output_sheet_overall.append([vendor_article, name, entry_price, lowest_price, wb_link, recommended_discount, correspondence])
+            output_sheet_overall.append([vendor_article, name, entry_price, lowest_price, wb_link, recommended_discount, correspondence, product_link])
         else:
             print(f"No price data for vendor article {vendor_article}")
+            output_sheet_overall.append([vendor_article, name, entry_price, lowest_price, wb_link, 0, 'Нет', ''])
 
     # Сохраняем общую таблицу
-    output_wb_overall.save("output_overall.xlsx")
+    output_wb_overall.save("outputs_folder\\output_overall.xlsx")
     # Сохраняем обновленный исходный файл
     wb.save('input.xlsx')
 
